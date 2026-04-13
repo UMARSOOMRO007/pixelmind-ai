@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PixelMind AI — Free AI Image Generator</title>
+  <meta name="description" content="Generate stunning AI images for free using the most powerful open-source models. No signup required. Powered by Hugging Face." />
+
+  <!-- ═══════════════════════════════════════════════════════════
+       GOOGLE ADSENSE — Replace ca-pub-XXXXXXXXXXXXXXXX with your Publisher ID
+       ═══════════════════════════════════════════════════════════ -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── RESET & VARIABLES ──────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080c10;
+      --surface:   #0f1419;
+      --surface2:  #161d26;
+      --border:    #1e2a38;
+      --accent:    #00d4ff;
+      --accent2:   #ff6b35;
+      --gold:      #f0b429;
+      --text:      #e2eaf4;
+      --text-dim:  #7a93ad;
+      --success:   #22c55e;
+      --error:     #ef4444;
+      --radius:    12px;
+      --font-head: 'Syne', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+      --font-body: 'DM Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── BACKGROUND GRID ────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── LAYOUT ─────────────────────────────────────────────── */
+    .wrapper { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+
+    /* ── TOP AD BANNER ──────────────────────────────────────── */
+    .ad-top {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 0;
+      text-align: center;
+    }
+    .ad-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .ad-slot-leaderboard {
+      display: inline-block;
+      width: 728px;
+      max-width: 100%;
+      height: 90px;
+      background: var(--surface2);
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+    /* AdSense unit injected inside these slots */
+
+    /* ── HEADER ─────────────────────────────────────────────── */
+    header {
+      padding: 28px 0 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, var(--accent), #0066ff);
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      box-shadow: 0 0 20px rgba(0,212,255,.3);
+    }
+    .logo-text {
+      font-family: var(--font-head);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -.02em;
+    }
+    .logo-text span { color: var(--accent); }
+
+    .header-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--gold);
+      background: rgba(240,180,41,.1);
+      border: 1px solid rgba(240,180,41,.25);
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: .05em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 6px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 13px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: color .2s, background .2s;
+    }
+    .nav-links a:hover {
+      color: var(--accent);
+      background: rgba(0,212,255,.07);
+    }
+
+    /* ── HERO ───────────────────────────────────────────────── */
+    .hero {
+      padding: 52px 0 40px;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+      opacity: .85;
+    }
+    .hero h1 {
+      font-family: var(--font-head);
+      font-size: clamp(36px, 6vw, 68px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -.03em;
+      margin-bottom: 18px;
+      background: linear-gradient(135deg, #e2eaf4 30%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 17px;
+      color: var(--text-dim);
+      max-width: 560px;
+      margin: 0 auto 32px;
+    }
+    .hero-pills {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .pill {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      letter-spacing: .04em;
+    }
+    .pill.active { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,.07); }
+
+    /* ── MAIN GRID ──────────────────────────────────────────── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 24px;
+      padding-bottom: 48px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── PANEL (controls) ───────────────────────────────────── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      position: sticky;
+      top: 20px;
+    }
+    .panel-title {
+      font-family: var(--font-head);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── FORM ELEMENTS ──────────────────────────────────────── */
+    .form-group { margin-bottom: 20px; }
+    .form-label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    .form-label .required { color: var(--accent2); }
+
+    textarea, input[type="text"], input[type="password"], select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      resize: vertical;
+    }
+    textarea:focus, input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0,212,255,.1);
+    }
+    textarea { min-height: 100px; line-height: 1.5; }
+    select { cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a93ad' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+
+    .input-hint {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 6px;
+      font-family: var(--font-mono);
+    }
+    .input-hint a { color: var(--accent); text-decoration: none; }
+
+    /* ── STYLE TAGS ─────────────────────────────────────────── */
+    .style-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .style-tag {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all .15s;
+      user-select: none;
+    }
+    .style-tag:hover { border-color: var(--accent); color: var(--accent); }
+    .style-tag.selected { background: rgba(0,212,255,.12); border-color: var(--accent); color: var(--accent); }
+
+    /* ── SIZE PICKER ────────────────────────────────────────── */
+    .size-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .size-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 8px 4px;
+      cursor: pointer;
+      text-align: center;
+      transition: all .15s;
+      line-height: 1.3;
+    }
+    .size-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .size-btn.active { background: rgba(0,212,255,.1); border-color: var(--accent); color: var(--accent); }
+    .size-btn span { display: block; font-size: 9px; opacity: .7; margin-top: 2px; }
+
+    /* ── GENERATE BUTTON ────────────────────────────────────── */
+    .btn-generate {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent), #0066ff);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-family: var(--font-head);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      padding: 14px;
+      cursor: pointer;
+      transition: opacity .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 4px 20px rgba(0,212,255,.25);
+      margin-top: 8px;
+    }
+    .btn-generate:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 6px 28px rgba(0,212,255,.35); }
+    .btn-generate:active { transform: translateY(0); }
+    .btn-generate:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    /* ── CREDITS COUNTER ────────────────────────────────────── */
+    .credits-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .credits-bar .label { color: var(--text-dim); }
+    .credits-bar .count { color: var(--gold); font-weight: 500; }
+
+    /* ── API KEY COLLAPSE ───────────────────────────────────── */
+    .api-toggle {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0;
+      margin-bottom: 10px;
+      transition: color .2s;
+    }
+    .api-toggle:hover { color: var(--accent); }
+    .api-toggle .arrow { transition: transform .2s; font-size: 10px; }
+    .api-toggle.open .arrow { transform: rotate(90deg); }
+
+    /* ── OUTPUT AREA ────────────────────────────────────────── */
+    .output-area { display: flex; flex-direction: column; gap: 20px; }
+
+    /* ── IMAGE CARD ─────────────────────────────────────────── */
+    .image-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .image-placeholder {
+      aspect-ratio: 1 / 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface2);
+      gap: 16px;
+      min-height: 400px;
+    }
+    .placeholder-icon {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(0,212,255,.1), rgba(0,102,255,.1));
+      border: 2px solid rgba(0,212,255,.2);
+      display: grid;
+      place-items: center;
+      font-size: 32px;
+      animation: pulse 3s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,255,.2); }
+      50% { box-shadow: 0 0 0 16px rgba(0,212,255,.0); }
+    }
+    .placeholder-text {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text-dim);
+      text-align: center;
+      max-width: 260px;
+      line-height: 1.6;
+    }
+
+    /* Loading spinner overlay */
+    .loading-overlay {
+      aspect-ratio: 1 / 1;
+      min-height: 400px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface2);
+      gap: 20px;
+    }
+    .loading-overlay.active { display: flex; }
+    .spinner {
+      width: 60px; height: 60px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text-dim);
+      text-align: center;
+    }
+    .loading-steps { font-size: 11px; margin-top: 6px; opacity: .7; }
+
+    /* Generated image */
+    #generated-img {
+      width: 100%;
+      display: none;
+      object-fit: contain;
+      border-radius: 0;
+    }
+
+    /* Error state */
+    .error-box {
+      display: none;
+      background: rgba(239,68,68,.08);
+      border: 1px solid rgba(239,68,68,.3);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #fca5a5;
+      line-height: 1.6;
+    }
+    .error-box.active { display: block; }
+
+    /* Image toolbar */
+    .image-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .img-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .toolbar-btns { display: flex; gap: 8px; }
+    .btn-sm {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+    }
+    .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-sm.primary { background: rgba(0,212,255,.1); border-color: var(--accent); color: var(--accent); }
+
+    /* ── HISTORY STRIP ──────────────────────────────────────── */
+    .history-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .section-title {
+      font-family: var(--font-head);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .history-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    .history-thumb {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: border-color .2s, transform .2s;
+      background: var(--surface2);
+    }
+    .history-thumb:hover { border-color: var(--accent); transform: scale(1.03); }
+    .history-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    .empty-history {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      text-align: center;
+      padding: 20px;
+    }
+
+    /* ── SIDE AD ────────────────────────────────────────────── */
+    .ad-sidebar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      text-align: center;
+    }
+    .ad-slot-rect {
+      display: inline-block;
+      width: 100%;
+      max-width: 336px;
+      height: 280px;
+      background: var(--surface2);
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+    }
+
+    /* ── MODELS INFO ────────────────────────────────────────── */
+    .models-info {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+    .model-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+      margin-top: 20px;
+    }
+    .model-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      transition: border-color .2s;
+      cursor: pointer;
+    }
+    .model-card:hover { border-color: var(--accent); }
+    .model-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .model-name {
+      font-family: var(--font-head);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .model-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: rgba(0,212,255,.1);
+      color: var(--accent);
+      border: 1px solid rgba(0,212,255,.2);
+    }
+    .model-badge.hot { background: rgba(255,107,53,.1); color: var(--accent2); border-color: rgba(255,107,53,.2); }
+    .model-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+    .model-speed {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-top: 10px;
+    }
+    .model-speed span { color: var(--gold); }
+
+    /* ── BOTTOM AD ──────────────────────────────────────────── */
+    .ad-bottom {
+      border-top: 1px solid var(--border);
+      padding: 16px 0;
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    /* ── FOOTER ─────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 0;
+      margin-top: 20px;
+    }
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-copy {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .footer-links a:hover { color: var(--accent); }
+
+    /* ── TOAST ──────────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text);
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+      z-index: 999;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity .3s, transform .3s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { border-color: var(--success); color: var(--success); }
+    .toast.error { border-color: var(--error); color: #fca5a5; }
+
+    /* ── SETUP MODAL ────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(8,12,16,.85);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 24px 80px rgba(0,0,0,.5);
+    }
+    .modal h2 {
+      font-family: var(--font-head);
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      letter-spacing: -.02em;
+    }
+    .modal p { font-size: 14px; color: var(--text-dim); margin-bottom: 24px; line-height: 1.6; }
+    .modal-steps { margin-bottom: 24px; }
+    .modal-step {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #0066ff);
+      display: grid;
+      place-items: center;
+      font-family: var(--font-head);
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-text { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+    .step-text a { color: var(--accent); }
+    .step-text strong { color: var(--text); }
+    .btn-modal-start {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent), #0066ff);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-family: var(--font-head);
+      font-size: 16px;
+      font-weight: 700;
+      padding: 14px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: opacity .2s;
+    }
+    .btn-modal-start:hover { opacity: .9; }
+    .modal-skip {
+      display: block;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 14px;
+      cursor: pointer;
+      transition: color .2s;
+    }
+    .modal-skip:hover { color: var(--text); }
+
+    /* ── RESPONSIVE ─────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 34px; }
+      .header-inner { gap: 10px; }
+      .nav-links { display: none; }
+      .ad-slot-leaderboard { height: 60px; }
+      .main-grid { gap: 16px; }
+      .panel { position: static; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ SETUP MODAL ═══════════════ -->
+<div class="modal-overlay" id="setup-modal">
+  <div class="modal">
+    <h2>⚡ Quick Setup</h2>
+    <p>PixelMind AI uses Hugging Face's free models. You need a free API token to get started.</p>
+    <div class="modal-steps">
+      <div class="modal-step">
+        <div class="step-num">1</div>
+        <div class="step-text">Go to <a href="https://huggingface.co/join" target="_blank">huggingface.co/join</a> and create a <strong>free account</strong></div>
+      </div>
+      <div class="modal-step">
+        <div class="step-num">2</div>
+        <div class="step-text">Visit <a href="https://huggingface.co/settings/tokens" target="_blank">Settings → Access Tokens</a> and create a token with <strong>Read</strong> permission</div>
+      </div>
+      <div class="modal-step">
+        <div class="step-num">3</div>
+        <div class="step-text">Paste your token below and start generating!</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Your Hugging Face API Token</label>
+      <input type="password" id="modal-hf-key" placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+    </div>
+    <button class="btn-modal-start" onclick="saveApiKey()">Start Generating →</button>
+    <span class="modal-skip" onclick="closeModal()">Skip for now (enter token manually below)</span>
+  </div>
+</div>
+
+<!-- ═══════════════ TOP AD BANNER ═══════════════ -->
+<div class="ad-top">
+  <div class="ad-label">Advertisement</div>
+  <div class="ad-slot-leaderboard">
+    <!-- ADSENSE UNIT — Replace data-ad-slot with your Ad Slot ID -->
+    <ins class="adsbygoogle"
+         style="display:inline-block;width:728px;height:90px"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="XXXXXXXXXX"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+</div>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header>
+  <div class="wrapper">
+    <div class="header-inner">
+      <a href="#" class="logo">
+        <div class="logo-icon">🎨</div>
+        <span class="logo-text">Pixel<span>Mind</span> AI</span>
+      </a>
+      <span class="header-badge">✦ 100% FREE</span>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="#generator">Generator</a></li>
+          <li><a href="#models">Models</a></li>
+          <li><a href="https://huggingface.co/join" target="_blank">Get HF Token</a></li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero">
+  <div class="wrapper">
+    <p class="hero-eyebrow">✦ Powered by Hugging Face Open Models</p>
+    <h1>Generate Stunning AI<br/>Images For Free</h1>
+    <p>No subscriptions. No watermarks. No limits. Powered by the world's most powerful open-source AI image models.</p>
+    <div class="hero-pills">
+      <span class="pill active">⚡ FLUX.1 Schnell</span>
+      <span class="pill">🎨 Stable Diffusion XL</span>
+      <span class="pill">🖼️ SD 2.1</span>
+      <span class="pill">🌟 Dreamshaper XL</span>
+      <span class="pill active">🔓 Open Source</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+<main id="generator">
+  <div class="wrapper">
+    <div class="main-grid">
+
+      <!-- ── LEFT PANEL: Controls ── -->
+      <aside>
+        <div class="panel">
+          <div class="panel-title">⚙ Generation Controls</div>
+
+          <!-- API Key -->
+          <div class="form-group">
+            <button class="api-toggle" id="api-toggle-btn" onclick="toggleApiSection()">
+              <span class="arrow">▶</span>
+              <span id="api-key-status">🔑 HF API Token (required)</span>
+            </button>
+            <div id="api-section" style="display:none;">
+              <input type="password" id="hf-api-key" placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxx"
+                     oninput="onApiKeyInput(this.value)" autocomplete="off" />
+              <div class="input-hint">
+                Free at <a href="https://huggingface.co/settings/tokens" target="_blank">huggingface.co/settings/tokens</a> — Read permission only
+              </div>
+            </div>
+          </div>
+
+          <!-- Prompt -->
+          <div class="form-group">
+            <label class="form-label">Prompt <span class="required">*</span></label>
+            <textarea id="prompt" placeholder="A cyberpunk cityscape at night, neon lights reflecting on rain-soaked streets, cinematic lighting, ultra detailed, 8k..."></textarea>
+          </div>
+
+          <!-- Negative Prompt -->
+          <div class="form-group">
+            <label class="form-label">Negative Prompt</label>
+            <textarea id="neg-prompt" style="min-height:70px;" placeholder="blurry, low quality, distorted, deformed, ugly, watermark...">blurry, low quality, distorted, deformed, ugly, watermark, text, logo</textarea>
+          </div>
+
+          <!-- Style Tags -->
+          <div class="form-group">
+            <label class="form-label">Style Boost</label>
+            <div class="style-tags" id="style-tags">
+              <span class="style-tag" onclick="toggleStyle(this, 'cinematic')">cinematic</span>
+              <span class="style-tag" onclick="toggleStyle(this, 'photorealistic')">photorealistic</span>
+              <span class="style-tag" onclick="toggleStyle(this, 'anime')">anime</span>
+              <span class="style-tag" onclick="toggleStyle(this, 'oil painting')">oil painting</span>
+              <span class="style-tag" onclick="toggleStyle(this, 'watercolor')">watercolor</span>
+              <span class="style-tag" onclick="toggleStyle(this, 'digital art')">digital art</span>
+              <span class="style-tag" onclick="toggleStyle(this, '8k ultra detailed')">8k ultra</span>
+              <span class="style-tag" onclick="toggleStyle(this, 'dark fantasy')">dark fantasy</span>
+              <span class="style-tag" onclick="toggleStyle(this, 'sci-fi')">sci-fi</span>
+              <span class="style-tag" onclick="toggleStyle(this, 'minimalist')">minimalist</span>
+            </div>
+          </div>
+
+          <!-- Model -->
+          <div class="form-group">
+            <label class="form-label">Model</label>
+            <select id="model-select">
+              <option value="black-forest-labs/FLUX.1-schnell">⚡ FLUX.1 Schnell (Fastest)</option>
+              <option value="black-forest-labs/FLUX.1-dev">🎨 FLUX.1 Dev (Best Quality)</option>
+              <option value="stabilityai/stable-diffusion-xl-base-1.0">🖼️ Stable Diffusion XL</option>
+              <option value="stabilityai/stable-diffusion-2-1">🌟 Stable Diffusion 2.1</option>
+              <option value="Lykon/dreamshaper-xl-turbo">💫 Dreamshaper XL Turbo</option>
+              <option value="prompthero/openjourney-v4">🚀 Openjourney v4 (Midjourney style)</option>
+            </select>
+          </div>
+
+          <!-- Image Size -->
+          <div class="form-group">
+            <label class="form-label">Output Size</label>
+            <div class="size-grid" id="size-grid">
+              <button class="size-btn active" onclick="selectSize(this, 512, 512)">512×512<span>Square</span></button>
+              <button class="size-btn" onclick="selectSize(this, 768, 768)">768×768<span>Square HD</span></button>
+              <button class="size-btn" onclick="selectSize(this, 512, 768)">512×768<span>Portrait</span></button>
+              <button class="size-btn" onclick="selectSize(this, 768, 512)">768×512<span>Landscape</span></button>
+              <button class="size-btn" onclick="selectSize(this, 1024, 576)">1024×576<span>Widescreen</span></button>
+              <button class="size-btn" onclick="selectSize(this, 1024, 1024)">1024×1024<span>FLUX HD</span></button>
+            </div>
+          </div>
+
+          <!-- Steps -->
+          <div class="form-group">
+            <label class="form-label">Steps: <span id="steps-val">20</span></label>
+            <input type="range" id="steps" min="10" max="50" value="20" style="width:100%;accent-color:var(--accent);"
+                   oninput="document.getElementById('steps-val').textContent=this.value" />
+          </div>
+
+          <!-- Guidance Scale -->
+          <div class="form-group">
+            <label class="form-label">Guidance Scale: <span id="guidance-val">7.5</span></label>
+            <input type="range" id="guidance" min="1" max="20" step="0.5" value="7.5" style="width:100%;accent-color:var(--accent);"
+                   oninput="document.getElementById('guidance-val').textContent=this.value" />
+          </div>
+
+          <button class="btn-generate" id="generate-btn" onclick="generateImage()">
+            ✦ Generate Image
+          </button>
+        </div>
+
+        <!-- Sidebar Ad -->
+        <div class="ad-sidebar" style="margin-top:20px;">
+          <div class="ad-label">Advertisement</div>
+          <div class="ad-slot-rect">
+            <!-- ADSENSE UNIT — Replace data-ad-slot with your Ad Slot ID -->
+            <ins class="adsbygoogle"
+                 style="display:block;width:336px;height:280px;max-width:100%"
+                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                 data-ad-slot="YYYYYYYYYY"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ── RIGHT: Output ── -->
+      <div class="output-area">
+
+        <!-- Image Output Card -->
+        <div class="image-card">
+
+          <!-- Placeholder -->
+          <div class="image-placeholder" id="placeholder">
+            <div class="placeholder-icon">🎨</div>
+            <div class="placeholder-text">Your AI-generated image will<br/>appear here after generation</div>
+          </div>
+
+          <!-- Loading -->
+          <div class="loading-overlay" id="loading-overlay">
+            <div class="spinner"></div>
+            <div class="loading-text">
+              Generating your masterpiece...
+              <div class="loading-steps" id="loading-step">Connecting to Hugging Face API...</div>
+            </div>
+          </div>
+
+          <!-- Generated Image -->
+          <img id="generated-img" alt="AI Generated Image" />
+
+          <!-- Error -->
+          <div class="error-box" id="error-box"></div>
+
+          <!-- Toolbar -->
+          <div class="image-toolbar" id="image-toolbar" style="display:none;">
+            <div class="img-meta" id="img-meta"></div>
+            <div class="toolbar-btns">
+              <a class="btn-sm primary" id="download-btn" download="pixelmind-ai.png">
+                ⬇ Download PNG
+              </a>
+              <button class="btn-sm" onclick="copyPrompt()">📋 Copy Prompt</button>
+              <button class="btn-sm" onclick="generateImage()">🔄 Regenerate</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- History -->
+        <div class="history-section">
+          <div class="section-title">Generation History</div>
+          <div class="history-grid" id="history-grid">
+            <div class="empty-history">Your generated images will appear here</div>
+          </div>
+        </div>
+
+        <!-- Bottom Ad (in output column) -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center;">
+          <div class="ad-label">Advertisement</div>
+          <div style="display:inline-block;width:100%;max-width:468px;height:60px;background:var(--surface2);border:1px dashed var(--border);border-radius:6px;">
+            <!-- ADSENSE UNIT — Replace data-ad-slot with your Ad Slot ID -->
+            <ins class="adsbygoogle"
+                 style="display:inline-block;width:468px;height:60px;max-width:100%"
+                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                 data-ad-slot="ZZZZZZZZZZ"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main-grid -->
+
+    <!-- ═══ MODELS INFO ═══ -->
+    <section id="models" class="models-info" style="margin-bottom:32px;">
+      <div class="section-title">Available Free Models</div>
+      <div class="model-cards">
+        <div class="model-card" onclick="selectModelFromCard('black-forest-labs/FLUX.1-schnell')">
+          <div class="model-card-head">
+            <div class="model-name">FLUX.1 Schnell</div>
+            <div class="model-badge hot">🔥 POPULAR</div>
+          </div>
+          <div class="model-desc">Black Forest Labs' fastest FLUX model. Blazing speed with excellent quality. Best for quick iterations.</div>
+          <div class="model-speed">⚡ Speed: <span>~15s</span> · Steps: 4 (built-in)</div>
+        </div>
+        <div class="model-card" onclick="selectModelFromCard('black-forest-labs/FLUX.1-dev')">
+          <div class="model-card-head">
+            <div class="model-name">FLUX.1 Dev</div>
+            <div class="model-badge">✨ BEST</div>
+          </div>
+          <div class="model-desc">The highest quality FLUX model. Slower but produces stunning photorealistic and artistic results.</div>
+          <div class="model-speed">⚡ Speed: <span>~45s</span> · Steps: 20–50</div>
+        </div>
+        <div class="model-card" onclick="selectModelFromCard('stabilityai/stable-diffusion-xl-base-1.0')">
+          <div class="model-card-head">
+            <div class="model-name">Stable Diffusion XL</div>
+            <div class="model-badge">🖼️ CLASSIC</div>
+          </div>
+          <div class="model-desc">Stability AI's flagship model. Versatile, reliable, and excellent for wide range of art styles.</div>
+          <div class="model-speed">⚡ Speed: <span>~25s</span> · Steps: 20–40</div>
+        </div>
+        <div class="model-card" onclick="selectModelFromCard('Lykon/dreamshaper-xl-turbo')">
+          <div class="model-card-head">
+            <div class="model-name">Dreamshaper XL</div>
+            <div class="model-badge">💫 ARTISTIC</div>
+          </div>
+          <div class="model-desc">Turbo version optimized for dreamy, artistic styles. Great for fantasy, anime, and painterly aesthetics.</div>
+          <div class="model-speed">⚡ Speed: <span>~12s</span> · Turbo model</div>
+        </div>
+        <div class="model-card" onclick="selectModelFromCard('prompthero/openjourney-v4')">
+          <div class="model-card-head">
+            <div class="model-name">Openjourney v4</div>
+            <div class="model-badge">🎭 MIDJOURNEY</div>
+          </div>
+          <div class="model-desc">Mimics Midjourney's aesthetic. Beautiful, artistic outputs with vibrant colors and refined compositions.</div>
+          <div class="model-speed">⚡ Speed: <span>~20s</span> · Steps: 20–30</div>
+        </div>
+        <div class="model-card" onclick="selectModelFromCard('stabilityai/stable-diffusion-2-1')">
+          <div class="model-card-head">
+            <div class="model-name">Stable Diffusion 2.1</div>
+            <div class="model-badge">⚙️ RELIABLE</div>
+          </div>
+          <div class="model-desc">Rock-solid and consistent. Great for architectural, product, and technical illustration prompts.</div>
+          <div class="model-speed">⚡ Speed: <span>~18s</span> · Steps: 20–30</div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /wrapper -->
+</main>
+
+<!-- ═══════════════ BOTTOM AD ═══════════════ -->
+<div class="ad-bottom">
+  <div class="wrapper">
+    <div class="ad-label">Advertisement</div>
+    <div class="ad-slot-leaderboard">
+      <!-- ADSENSE UNIT — Replace data-ad-slot with your Ad Slot ID -->
+      <ins class="adsbygoogle"
+           style="display:inline-block;width:728px;height:90px"
+           data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+           data-ad-slot="WWWWWWWWWW"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  <div class="wrapper">
+    <div class="footer-inner">
+      <div class="footer-copy">© 2025 PixelMind AI · Built on Hugging Face Open Models · Free Forever</div>
+      <div class="footer-links">
+        <a href="https://huggingface.co" target="_blank">Hugging Face</a>
+        <a href="https://huggingface.co/docs/api-inference" target="_blank">API Docs</a>
+        <a href="#generator">Back to Top</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════ TOAST ═══════════════ -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════ -->
+<script>
+  // ── STATE ────────────────────────────────────────────────
+  let selectedW = 512, selectedH = 512;
+  let selectedStyles = [];
+  let generationHistory = [];
+  let lastPrompt = '';
+
+  // ── INIT ─────────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    const storedKey = localStorage.getItem('hf_api_key');
+    if (storedKey) {
+      document.getElementById('hf-api-key').value = storedKey;
+      document.getElementById('api-key-status').textContent = '🔑 HF Token ✓ Saved';
+      document.getElementById('setup-modal').style.display = 'none';
+    }
+    loadHistory();
+  });
+
+  // ── MODAL ────────────────────────────────────────────────
+  function saveApiKey() {
+    const key = document.getElementById('modal-hf-key').value.trim();
+    if (!key.startsWith('hf_') && key.length < 5) {
+      toast('Please enter a valid Hugging Face token (starts with hf_)', 'error');
+      return;
+    }
+    localStorage.setItem('hf_api_key', key);
+    document.getElementById('hf-api-key').value = key;
+    document.getElementById('api-key-status').textContent = '🔑 HF Token ✓ Saved';
+    document.getElementById('setup-modal').style.display = 'none';
+    toast('✓ API Token saved successfully!', 'success');
+  }
+
+  function closeModal() {
+    document.getElementById('setup-modal').style.display = 'none';
+    document.getElementById('api-section').style.display = 'block';
+    document.getElementById('api-toggle-btn').classList.add('open');
+  }
+
+  // ── API KEY SECTION TOGGLE ───────────────────────────────
+  function toggleApiSection() {
+    const section = document.getElementById('api-section');
+    const btn = document.getElementById('api-toggle-btn');
+    const shown = section.style.display !== 'none';
+    section.style.display = shown ? 'none' : 'block';
+    btn.classList.toggle('open', !shown);
+  }
+
+  function onApiKeyInput(val) {
+    if (val.length > 10) {
+      localStorage.setItem('hf_api_key', val);
+      document.getElementById('api-key-status').textContent = '🔑 HF Token ✓ Saved';
+    }
+  }
+
+  // ── STYLE TAGS ───────────────────────────────────────────
+  function toggleStyle(el, style) {
+    if (el.classList.contains('selected')) {
+      el.classList.remove('selected');
+      selectedStyles = selectedStyles.filter(s => s !== style);
+    } else {
+      el.classList.add('selected');
+      selectedStyles.push(style);
+    }
+  }
+
+  // ── SIZE PICKER ──────────────────────────────────────────
+  function selectSize(btn, w, h) {
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedW = w; selectedH = h;
+  }
+
+  // ── MODEL FROM CARD ──────────────────────────────────────
+  function selectModelFromCard(modelId) {
+    document.getElementById('model-select').value = modelId;
+    document.querySelector('#generator').scrollIntoView({ behavior: 'smooth' });
+    toast('✓ Model selected: ' + modelId.split('/')[1], 'success');
+  }
+
+  // ── COPY PROMPT ──────────────────────────────────────────
+  function copyPrompt() {
+    navigator.clipboard.writeText(lastPrompt).then(() => toast('✓ Prompt copied!', 'success'));
+  }
+
+  // ── HISTORY ─────────────────────────────────────────────
+  function saveToHistory(blobUrl, prompt) {
+    const item = { url: blobUrl, prompt, ts: Date.now() };
+    generationHistory.unshift(item);
+    if (generationHistory.length > 12) generationHistory.pop();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const grid = document.getElementById('history-grid');
+    if (generationHistory.length === 0) {
+      grid.innerHTML = '<div class="empty-history">Your generated images will appear here</div>';
+      return;
+    }
+    grid.innerHTML = generationHistory.map((item, i) =>
+      `<div class="history-thumb" title="${item.prompt.substring(0,80)}" onclick="viewHistory(${i})">
+         <img src="${item.url}" alt="Generated ${i+1}" loading="lazy"/>
+       </div>`
+    ).join('');
+  }
+
+  function viewHistory(idx) {
+    const item = generationHistory[idx];
+    showGeneratedImage(item.url, item.prompt);
+  }
+
+  function loadHistory() {
+    renderHistory();
+  }
+
+  // ── SHOW GENERATED IMAGE ─────────────────────────────────
+  function showGeneratedImage(url, prompt) {
+    const img = document.getElementById('generated-img');
+    img.src = url;
+    img.style.display = 'block';
+    document.getElementById('placeholder').style.display = 'none';
+    document.getElementById('loading-overlay').classList.remove('active');
+    document.getElementById('error-box').classList.remove('active');
+    document.getElementById('image-toolbar').style.display = 'flex';
+    document.getElementById('download-btn').href = url;
+    document.getElementById('img-meta').textContent =
+      `${selectedW}×${selectedH} · ${document.getElementById('model-select').value.split('/')[1]}`;
+  }
+
+  // ── GENERATE IMAGE ───────────────────────────────────────
+  async function generateImage() {
+    const apiKey = document.getElementById('hf-api-key').value.trim()
+                || localStorage.getItem('hf_api_key') || '';
+
+    if (!apiKey || apiKey.length < 10) {
+      document.getElementById('setup-modal').style.display = 'flex';
+      toast('Please enter your Hugging Face API token first', 'error');
+      return;
+    }
+
+    let prompt = document.getElementById('prompt').value.trim();
+    if (!prompt) { toast('Please enter a prompt first!', 'error'); return; }
+
+    // Append styles
+    if (selectedStyles.length) prompt += ', ' + selectedStyles.join(', ');
+    lastPrompt = prompt;
+
+    const negPrompt = document.getElementById('neg-prompt').value.trim();
+    const model     = document.getElementById('model-select').value;
+    const steps     = parseInt(document.getElementById('steps').value);
+    const guidance  = parseFloat(document.getElementById('guidance').value);
+
+    // ── UI: loading state ──
+    document.getElementById('placeholder').style.display = 'none';
+    document.getElementById('generated-img').style.display = 'none';
+    document.getElementById('image-toolbar').style.display = 'none';
+    document.getElementById('error-box').classList.remove('active');
+    document.getElementById('loading-overlay').classList.add('active');
+    document.getElementById('generate-btn').disabled = true;
+
+    const steps_labels = [
+      'Connecting to Hugging Face API...',
+      'Loading model weights...',
+      'Processing your prompt...',
+      'Running diffusion steps...',
+      'Rendering final image...'
+    ];
+    let si = 0;
+    const stepInterval = setInterval(() => {
+      si = (si + 1) % steps_labels.length;
+      document.getElementById('loading-step').textContent = steps_labels[si];
+    }, 3000);
+
+    try {
+      // Payload — FLUX models only need inputs; SD models accept more params
+      const isFlux = model.includes('FLUX');
+      const payload = {
+        inputs: prompt,
+        parameters: isFlux ? {} : {
+          negative_prompt: negPrompt,
+          num_inference_steps: steps,
+          guidance_scale: guidance,
+          width: selectedW,
+          height: selectedH,
+        }
+      };
+
+      const resp = await fetch(
+        `https://api-inference.huggingface.co/models/${model}`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      clearInterval(stepInterval);
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        let errMsg = `API Error ${resp.status}`;
+        try {
+          const errJson = JSON.parse(errText);
+          errMsg = errJson.error || errMsg;
+          // Model loading
+          if (errJson.estimated_time) {
+            errMsg += `\n\nModel is loading. Estimated wait: ${Math.ceil(errJson.estimated_time)}s. Please try again in a moment.`;
+          }
+        } catch (_) { errMsg += ': ' + errText.substring(0, 200); }
+        throw new Error(errMsg);
+      }
+
+      const blob = await resp.blob();
+      if (!blob.type.startsWith('image/')) {
+        const text = await blob.text();
+        throw new Error('Unexpected response: ' + text.substring(0, 300));
+      }
+
+      const url = URL.createObjectURL(blob);
+      showGeneratedImage(url, prompt);
+      saveToHistory(url, prompt);
+      toast('✓ Image generated successfully!', 'success');
+
+    } catch (err) {
+      clearInterval(stepInterval);
+      document.getElementById('loading-overlay').classList.remove('active');
+      document.getElementById('placeholder').style.display = 'flex';
+
+      const errBox = document.getElementById('error-box');
+      errBox.innerHTML = `
+        <strong>⚠ Generation Failed</strong><br/><br/>
+        ${err.message.replace(/\n/g, '<br/>')}
+        <br/><br/>
+        <strong>Common fixes:</strong><br/>
+        • Check your HF token is valid and has Read permission<br/>
+        • The model may be loading — wait 20s and retry<br/>
+        • Try a different model from the list
+      `;
+      errBox.classList.add('active');
+      toast('Generation failed. See error details.', 'error');
+    } finally {
+      document.getElementById('generate-btn').disabled = false;
+    }
+  }
+
+  // ── TOAST ────────────────────────────────────────────────
+  function toast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.className = 'toast'; }, 3200);
+  }
+
+  // ── ENTER KEY on textarea ────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.key === 'Enter') generateImage();
+  });
+</script>
+
+</body>
+</html>
